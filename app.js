@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const ExcelJS = require('exceljs');
+const json5 = require('json5');
 
 const tablolariCek = async (url, sayfaSayisi) => {
   try {
@@ -291,5 +293,33 @@ async function run() {
   const uniKodlari = await uniKodlariCek();
   verileriBirlestir(dilTablo, sayTablo, eaTablo, sozTablo, uniKodlari);
   console.log('Bitti.');
+
+
+  uniAdlariniCek();  
 }
+
+const uniAdlariniCek = async () => {
+  try {
+    // JSON dosyasını oku
+    const data = json5.parse(fs.readFileSync('unileryeni.json', 'utf8'));
+
+    // Yeni bir Excel çalışma kitabı oluştur
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Üniversite Adları');
+
+    // Verileri Excel'e yaz
+    let row = 1;
+    for (const uniId in data) {
+      worksheet.getCell(`A${row}`).value = data[uniId].uniAdi;
+      row++;
+    }
+
+    // Excel dosyasını kaydet
+    await workbook.xlsx.writeFile('universite_adlari.xlsx');
+    console.log('Veriler başarıyla Excel dosyasına yazıldı.');
+  } catch (err) {
+    console.error('Hata oluştu:', err);
+  }
+};
+
 run();
